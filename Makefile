@@ -35,6 +35,15 @@ logs: ## Show live logs
 sh: ## Connect to the PHP FPM container
 	@$(PHP_CONT) sh
 
+exec:
+	@$(DOCKER_COMP) exec
+
+ps:
+	@$(DOCKER_COMP) ps
+
+kill:
+	@$(DOCKER_COMPOSE) kill
+
 ## —— Composer 🧙 ——————————————————————————————————————————————————————————————
 composer: ## Run composer, pass the parameter "c=" to run a given command, example: make composer c='req symfony/orm-pack'
 	@$(eval c ?=)
