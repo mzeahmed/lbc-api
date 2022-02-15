@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+    db:
+        image: mysql
+        container_name: lbc_db
+        restart: always
+        volumes:
+            - db-data:/var/lib/mysql
+        environment:
+            MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+        networks:
+            - lbc_api
+
+    phpmyadmin:
+        image: phpmyadmin
+        container_name: lbc_phpmyadmin
+        depends_on:
+            - db
+        ports:
+            - "8080:80"
+        environment:
+            PMA_HOST: db
+        networks:
+            lbc_api:
+
+    web:
+        build: .docker/php
+        container_name: lbc_api_web
+        ports:
+            - "8741:80"
+        volumes:
+            - .docker/php/vhosts:/etc/apache2/sites-enabled
+            - ./:/var/www/lbc-api
+        restart: always
+        networks:
+            lbc_api:
+
+networks:
+    lbc_api:
+volumes:
+    db-data:
