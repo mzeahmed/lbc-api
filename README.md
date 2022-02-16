@@ -23,10 +23,10 @@ Relancer le terminal et la commande make sera disponible.
 `composer install`
 
 ### Création de la base de données
-`symfony console doctrine:database:create`
+`php bin/console doctrine:database:create`
 
 ### Céation des fichiers de migrations
-`symfony console make:migration`
+`php bin/console make:migration`
 
 ### Lancement des migrations
-`Symfony console doctrine:migrations:migrate`
+`php bin/console doctrine:migrations:migrate`

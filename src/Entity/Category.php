@@ -15,24 +15,27 @@ class Category
     #[ORM\Column(type: 'integer')]
     private $id;
 
-    #[ORM\OneToMany(mappedBy: 'categories', targetEntity: Ad::class)]
+    #[ORM\OneToMany(mappedBy: 'category', targetEntity: Ad::class)]
     private $ads;
 
-    #[ORM\OneToMany(mappedBy: 'category', targetEntity: Automotive::class)]
-    private $automotives;
+    #[ORM\OneToOne(targetEntity: Automotive::class)]
+    #[ORM\JoinColumn(name: 'automotive_id', referencedColumnName: 'id')]
+    private $automotive;
 
-    #[ORM\OneToMany(mappedBy: 'category', targetEntity: Job::class)]
-    private $jobs;
+    #[ORM\OneToOne(targetEntity: Job::class)]
+    #[ORM\JoinColumn(name: 'job_id', referencedColumnName: 'id')]
+    private $job;
 
-    #[ORM\OneToMany(mappedBy: 'category', targetEntity: RealEstate::class)]
-    private $realEstates;
+    #[ORM\OneToOne(targetEntity: RealEstate::class)]
+    #[ORM\JoinColumn(name: 'real_estate_id', referencedColumnName: 'id')]
+    private $realEstate;
 
     public function __construct()
     {
         $this->ads = new ArrayCollection();
-        $this->automotives = new ArrayCollection();
-        $this->jobs = new ArrayCollection();
-        $this->realEstates = new ArrayCollection();
+        $this->automotive = new ArrayCollection();
+        $this->job = new ArrayCollection();
+        $this->realEstate = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -73,90 +76,24 @@ class Category
     /**
      * @return Collection
      */
-    public function getAutomotives(): Collection
+    public function getAutomotive(): Collection
     {
-        return $this->automotives;
-    }
-
-    public function addAutomotive(Automotive $automotive): self
-    {
-        if (!$this->automotives->contains($automotive)) {
-            $this->automotives[] = $automotive;
-            $automotive->setCategory($this);
-        }
-
-        return $this;
-    }
-
-    public function removeAutomotive(Automotive $automotive): self
-    {
-        if ($this->automotives->removeElement($automotive)) {
-            // set the owning side to null (unless already changed)
-            if ($automotive->getCategory() === $this) {
-                $automotive->setCategory(null);
-            }
-        }
-
-        return $this;
+        return $this->automotive;
     }
 
     /**
      * @return Collection
      */
-    public function getJobs(): Collection
+    public function getJob(): Collection
     {
-        return $this->jobs;
-    }
-
-    public function addJob(Job $job): self
-    {
-        if (!$this->jobs->contains($job)) {
-            $this->jobs[] = $job;
-            $job->setCategory($this);
-        }
-
-        return $this;
-    }
-
-    public function removeJob(Job $job): self
-    {
-        if ($this->jobs->removeElement($job)) {
-            // set the owning side to null (unless already changed)
-            if ($job->getCategory() === $this) {
-                $job->setCategory(null);
-            }
-        }
-
-        return $this;
+        return $this->job;
     }
 
     /**
      * @return Collection
      */
-    public function getRealEstates(): Collection
+    public function getRealEstate(): Collection
     {
-        return $this->realEstates;
-    }
-
-    public function addRealEstate(RealEstate $realEstate): self
-    {
-        if (!$this->realEstates->contains($realEstate)) {
-            $this->realEstates[] = $realEstate;
-            $realEstate->setCategory($this);
-        }
-
-        return $this;
-    }
-
-    public function removeRealEstate(RealEstate $realEstate): self
-    {
-        if ($this->realEstates->removeElement($realEstate)) {
-            // set the owning side to null (unless already changed)
-            if ($realEstate->getCategory() === $this) {
-                $realEstate->setCategory(null);
-            }
-        }
-
-        return $this;
+        return $this->realEstate;
     }
 }

@@ -19,9 +19,6 @@ class Automotive
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $model;
 
-    #[ORM\ManyToOne(targetEntity: Category::class, inversedBy: 'automotives')]
-    private ?Category $category;
-
     public function getId(): ?int
     {
         return $this->id;
@@ -47,18 +44,6 @@ class Automotive
     public function setModel(string $model): self
     {
         $this->model = $model;
-
-        return $this;
-    }
-
-    public function getCategory(): ?Category
-    {
-        return $this->category;
-    }
-
-    public function setCategory(?Category $category): self
-    {
-        $this->category = $category;
 
         return $this;
     }
