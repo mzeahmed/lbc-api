@@ -15,27 +15,15 @@ class Category
     #[ORM\Column(type: 'integer')]
     private $id;
 
+    #[ORM\Column(type: 'string', length: 255)]
+    private ?string $name;
+
     #[ORM\OneToMany(mappedBy: 'category', targetEntity: Ad::class)]
     private $ads;
-
-    #[ORM\OneToOne(targetEntity: Automotive::class)]
-    #[ORM\JoinColumn(name: 'automotive_id', referencedColumnName: 'id')]
-    private $automotive;
-
-    #[ORM\OneToOne(targetEntity: Job::class)]
-    #[ORM\JoinColumn(name: 'job_id', referencedColumnName: 'id')]
-    private $job;
-
-    #[ORM\OneToOne(targetEntity: RealEstate::class)]
-    #[ORM\JoinColumn(name: 'real_estate_id', referencedColumnName: 'id')]
-    private $realEstate;
 
     public function __construct()
     {
         $this->ads = new ArrayCollection();
-        $this->automotive = new ArrayCollection();
-        $this->job = new ArrayCollection();
-        $this->realEstate = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -43,8 +31,20 @@ class Category
         return $this->id;
     }
 
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    public function setName(string $name): self
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
     /**
-     * @return Collection
+     * @return Collection<int, Ad>
      */
     public function getAds(): Collection
     {
@@ -71,29 +71,5 @@ class Category
         }
 
         return $this;
-    }
-
-    /**
-     * @return Collection
-     */
-    public function getAutomotive(): Collection
-    {
-        return $this->automotive;
-    }
-
-    /**
-     * @return Collection
-     */
-    public function getJob(): Collection
-    {
-        return $this->job;
-    }
-
-    /**
-     * @return Collection
-     */
-    public function getRealEstate(): Collection
-    {
-        return $this->realEstate;
     }
 }

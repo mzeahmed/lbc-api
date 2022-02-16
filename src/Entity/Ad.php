@@ -24,7 +24,7 @@ class Ad
 
     #[ORM\ManyToOne(targetEntity: Category::class, inversedBy: 'ads')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Category $category;
+    private $category;
 
     public function getId(): ?int
     {
