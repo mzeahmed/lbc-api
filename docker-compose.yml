@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
     database:
-        image: 'mysql:latest'
+        image: 'mysql:8.0.28'
         container_name: lbc_db
         restart: always
         volumes:
@@ -12,7 +12,7 @@ services:
         ports:
             - "3306:3306"
         networks:
-            - lbc_api
+            dev:
 
     phpmyadmin:
         image: phpmyadmin
@@ -24,7 +24,7 @@ services:
         environment:
             PMA_HOST: database
         networks:
-            lbc_api:
+            dev:
 
     web:
         build: .docker/php
@@ -36,11 +36,13 @@ services:
         volumes:
             - .docker/php/vhosts:/etc/apache2/sites-enabled
             - ./:/var/www/lbc-api
+        environment:
+            DATABASE_URL: mysql://root:@database/lbc_api?serverVersion=8.0.28
         restart: always
         networks:
-            lbc_api:
+            dev:
 
 networks:
-    lbc_api:
+    dev:
 volumes:
     db-data:
