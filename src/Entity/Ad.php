@@ -14,7 +14,7 @@ class Ad
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     #[Groups('ad:read')]
-    private $id;
+    private int $id;
 
     #[ORM\Column(type: 'string', length: 255)]
     #[Groups('ad:read')]
