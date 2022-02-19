@@ -18,6 +18,13 @@ use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 #[Route('/api/ad', name: 'app_api_ad')]
 class ApiAdController extends AbstractController
 {
+    public function __construct(
+        private EntityManagerInterface $em,
+        private SerializerInterface $serializer,
+        private ValidatorInterface $validator
+    ) {
+    }
+
     /**
      * @param AdRepository $adRepository
      *
@@ -30,33 +37,26 @@ class ApiAdController extends AbstractController
     }
 
     /**
-     * @param Request                $request
-     * @param SerializerInterface    $serializer
-     * @param EntityManagerInterface $em
-     * @param ValidatorInterface     $validator
+     * @param Request $request
      *
      * @return JsonResponse
      */
     #[Route('/store', name: '_new', methods: ['POST'])]
-    public function store(
-        Request $request,
-        SerializerInterface $serializer,
-        EntityManagerInterface $em,
-        ValidatorInterface $validator
-    ): JsonResponse {
+    public function store(Request $request): JsonResponse
+    {
         $json = $request->getContent();
 
         try {
-            $ad = $serializer->deserialize($json, Ad::class, 'json');
+            $ad = $this->serializer->deserialize($json, Ad::class, 'json');
             $ad->setCreatedAt(new \DateTime());
 
-            $errors = $validator->validate($ad);
+            $errors = $this->validator->validate($ad);
             if (count($errors) > 0) {
                 return $this->json($errors, Response::HTTP_BAD_REQUEST,);
             }
 
-            $em->persist($ad);
-            $em->flush();
+            $this->em->persist($ad);
+            $this->em->flush();
 
             return $this->json($ad, 201, [], ['groups' => 'ad:read']);
         } catch (NotEncodableValueException $e) {
@@ -79,34 +79,26 @@ class ApiAdController extends AbstractController
     }
 
     /**
-     * @param Ad                     $ad
-     * @param Request                $request
-     * @param SerializerInterface    $serializer
-     * @param ValidatorInterface     $validator
-     * @param EntityManagerInterface $manager
+     * @param Ad      $ad
+     * @param Request $request
      *
      * @return JsonResponse
      */
     #[Route('/{id}/edit', name: '_edit', methods: ['PUT'])]
-    public function update(
-        Ad $ad,
-        Request $request,
-        SerializerInterface $serializer,
-        ValidatorInterface $validator,
-        EntityManagerInterface $manager
-    ): JsonResponse {
+    public function update(Ad $ad, Request $request): JsonResponse
+    {
         $json = $request->getContent();
 
         try {
-            $class = $serializer->deserialize($json, Ad::class, 'json');
+            $class = $this->serializer->deserialize($json, Ad::class, 'json');
 
-            $errors = $validator->validate($class);
+            $errors = $this->validator->validate($class);
             if (count($errors) > 0) {
                 return $this->json($errors, Response::HTTP_BAD_REQUEST);
             }
 
-            $manager->persist($ad);
-            $manager->flush();
+            $this->em->persist($ad);
+            $this->em->flush();
 
             return $this->json([
                 'code' => 'update',
@@ -121,17 +113,16 @@ class ApiAdController extends AbstractController
     }
 
     /**
-     * @param Ad                     $ad
-     * @param EntityManagerInterface $manager
+     * @param Ad $ad
      *
      * @return JsonResponse
      */
     #[Route('/{id}/delete', name: '_delete', methods: ['POST'])]
-    public function delete(Ad $ad, EntityManagerInterface $manager): JsonResponse
+    public function delete(Ad $ad): JsonResponse
     {
         try {
-            $manager->remove($ad);
-            $manager->flush();
+            $this->em->remove($ad);
+            $this->em->flush();
 
             return $this->json([
                 'code' => 'remove',
