@@ -1,3 +1,7 @@
+<p align="center">
+ <strong>Ahmed Mze</strong>
+</p>
+
 # API de petites annonces
 
 ### Créé avec [Symfony](https://symfony.com/) dans un envirronement [Docker](https://www.docker.com/get-started)
