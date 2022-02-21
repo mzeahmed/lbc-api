@@ -2,6 +2,6 @@
 framework:
     test: true
 
-liip_test_fixtures:
-    cache_db:
-        sqlite: 'Liip\TestFixturesBundle\Services\DatabaseBackup\SqliteDatabaseBackup'
+#liip_test_fixtures:
+#    cache_db:
+#        sqlite: 'Liip\TestFixturesBundle\Services\DatabaseBackup\SqliteDatabaseBackup'

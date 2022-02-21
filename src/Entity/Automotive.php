@@ -6,6 +6,7 @@ use App\Repository\AutomotiveRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: AutomotiveRepository::class)]
 class Automotive
@@ -17,9 +18,11 @@ class Automotive
     private $id;
 
     #[ORM\Column(type: 'string', length: 255)]
+    #[Groups('ad:read')]
     private ?string $name;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[Groups('ad:read')]
     private ?string $brand;
 
     #[ORM\OneToMany(mappedBy: 'vehicle', targetEntity: Ad::class)]

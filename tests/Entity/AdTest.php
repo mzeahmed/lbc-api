@@ -2,23 +2,34 @@
 
 namespace App\Tests\Entity;
 
-use App\Entity\Car;
+use App\Entity\Ad;
+use App\Entity\Automotive;
+use App\Repository\CategoryRepository;
+use App\Repository\AutomotiveRepository;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 class AdTest extends KernelTestCase
 {
-    public function getEntity(): Car
+    public function getEntity(): Ad
     {
-        return (new Car())
-            ->setBrand('Renault')
-            ->setModel(['Clio'])
+        $autoRepo = $this->createMock(AutomotiveRepository::class);
+        $cateRepo = $this->createMock(CategoryRepository::class);
+
+        $vehicle = $autoRepo->findBy(['id' => 2]);
+        $category = $cateRepo->findBy(['id' => 2]);
+
+        return (new Ad())
+            ->setTitle('test')
+            ->setContent('contenu')
+            ->setVehicle(($vehicle[0]))
+            ->setCategory($category[0])
         ;
     }
 
-    public function assertHasError(Car $car, int $number = 0)
+    public function assertHasError(Automotive $automotive, int $number = 0)
     {
         self::bootKernel();
-        $error = static::getContainer()->get('validator')->validate($car);
+        $error = static::getContainer()->get('validator')->validate($automotive);
         self::assertCount($number, $error);
     }
 
@@ -27,7 +38,7 @@ class AdTest extends KernelTestCase
      *
      * @return void
      */
-    public function testValidCarEntity()
+    public function testValidAutomotiveEntity()
     {
         $this->assertHasError($this->getEntity(), 0);
     }
@@ -47,8 +58,8 @@ class AdTest extends KernelTestCase
      *
      * @return void
      */
-    public function testInvalidBlankModelEntity()
+    public function testInvalidBlankNameEntity()
     {
-        $this->assertHasError($this->getEntity()->setModel([]), 1);
+        $this->assertHasError($this->getEntity()->setName(''), 1);
     }
 }

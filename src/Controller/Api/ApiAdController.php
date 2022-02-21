@@ -3,6 +3,8 @@
 namespace App\Controller\Api;
 
 use App\Entity\Ad;
+use App\Entity\Category;
+use App\Entity\Automotive;
 use App\Repository\AdRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -33,6 +35,8 @@ class ApiAdController extends AbstractController
     #[Route('/', name: '_index', methods: ['GET'])]
     public function index(AdRepository $adRepository): JsonResponse
     {
+        // dd($adRepository->findAll());
+
         return $this->json($adRepository->findAll(), 200, [], ['groups' => 'ad:read']);
     }
 
@@ -45,10 +49,23 @@ class ApiAdController extends AbstractController
     public function store(Request $request): JsonResponse
     {
         $json = $request->getContent();
+        $obj = json_decode($json);
+        $vehicleId = $obj->{'vehicle'}->{'id'};
+        $categoryId = $obj->{'category'}->{'id'};
+
+        $automotive = $this->em->getRepository(Automotive::class)->findBy(['id' => $vehicleId]);
+        $category = $this->em->getRepository(Category::class)->findBy(['id' => $categoryId]);
+
+        // dd($automotive[0], $category[0]);
 
         try {
             $ad = $this->serializer->deserialize($json, Ad::class, 'json');
-            $ad->setCreatedAt(new \DateTime());
+
+            $ad
+                ->setCreatedAt(new \DateTime())
+                ->setVehicle($automotive[0])
+                ->setCategory($category[0])
+            ;
 
             $errors = $this->validator->validate($ad);
             if (count($errors) > 0) {

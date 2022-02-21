@@ -24,44 +24,6 @@ class AppFixtures extends Fixture
         $this->loadAds($manager);
     }
 
-    private function loadAds(ObjectManager $manager)
-    {
-        $categories = [];
-        $vehicles = $manager->getRepository(Automotive::class)->findAll();
-
-        // Ajout des categories
-        foreach ($this->getCategoryData() as [$name]) {
-            $category = (new Category())->setName($name);
-
-            $manager->persist($category);
-            $categories[] = $category;
-        }
-
-        // ajout des annonces
-        for ($i = 1; $i <= 30; $i++) {
-            $title = $this->faker->sentence();
-            $content = '<p>' . join('</p><p>', $this->faker->paragraphs(5)) . '</p>';
-
-            $category = $categories[mt_rand(0, count($categories) - 1)];
-            $vehicle = $vehicles[array_rand($vehicles)];
-
-            $ad = new Ad();
-
-            $ad->setTitle($title);
-            $ad->setContent($content);
-            $ad->setCreatedAt($this->faker->dateTimeBetween('-6 months'));
-            $ad->setCategory($category);
-
-            if ($category->getName() === 'Automotive') {
-                $ad->setVehicle($vehicle);
-            }
-
-            $manager->persist($ad);
-        }
-
-        $manager->flush();
-    }
-
     /**
      * @param ObjectManager $manager
      *
@@ -108,6 +70,44 @@ class AppFixtures extends Fixture
                     $this->setReference($brand, $automotive);
                 }
             }
+        }
+
+        $manager->flush();
+    }
+
+    private function loadAds(ObjectManager $manager)
+    {
+        $categories = [];
+        $vehicles = $manager->getRepository(Automotive::class)->findAll();
+
+        // Ajout des categories
+        foreach ($this->getCategoryData() as [$name]) {
+            $category = (new Category())->setName($name);
+
+            $manager->persist($category);
+            $categories[] = $category;
+        }
+
+        // ajout des annonces
+        for ($i = 1; $i <= 30; $i++) {
+            $title = $this->faker->sentence();
+            $content = '<p>' . join('</p><p>', $this->faker->paragraphs(5)) . '</p>';
+
+            $category = $categories[mt_rand(0, count($categories) - 1)];
+            $vehicle = $vehicles[array_rand($vehicles)];
+
+            $ad = new Ad();
+
+            $ad->setTitle($title);
+            $ad->setContent($content);
+            $ad->setCreatedAt($this->faker->dateTimeBetween('-6 months'));
+            $ad->setCategory($category);
+
+            if ($category->getName() === 'Automotive') {
+                $ad->setVehicle($vehicle);
+            }
+
+            $manager->persist($ad);
         }
 
         $manager->flush();
