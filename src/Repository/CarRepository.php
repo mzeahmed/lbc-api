@@ -6,6 +6,8 @@ use App\Entity\Car;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
+use function Symfony\Component\String\u;
+
 /**
  * @method Car|null find($id, $lockMode = null, $lockVersion = null)
  * @method Car|null findOneBy(array $criteria, array $orderBy = null)
@@ -19,32 +21,52 @@ class CarRepository extends ServiceEntityRepository
         parent::__construct($registry, Car::class);
     }
 
-    // /**
-    //  * @return Car[] Returns an array of Car objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    /**
+     * @param string $query
+     * @param int    $limit
+     *
+     * @return array
+     */
+    public function findBySearchQuery(string $query, int $limit = 2): array
     {
-        return $this->createQueryBuilder('c')
-            ->andWhere('c.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('c.id', 'ASC')
-            ->setMaxResults(10)
+        $searchTerms = $this->extractSearchTerms($query);
+
+        if (0 === \count($searchTerms)) {
+            return [];
+        }
+
+        $qb = $this->createQueryBuilder('c');
+
+        foreach ($searchTerms as $key => $term) {
+            $qb
+                ->orWhere('c.model LIKE :t_' . $key)
+                ->setParameter('t_' . $key, '%' . $term . '%')
+            ;
+        }
+
+        return $qb
+            ->orderBy('c.model', 'DESC')
+            ->setMaxResults($limit)
             ->getQuery()
             ->getResult()
         ;
     }
-    */
 
-    /*
-    public function findOneBySomeField($value): ?Car
+    /**
+     * Transforme la chaîne de recherche en un tableau de recherche.
+     *
+     * @param string $searchQuery
+     *
+     * @return array
+     */
+    private function extractSearchTerms(string $searchQuery): array
     {
-        return $this->createQueryBuilder('c')
-            ->andWhere('c.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        $searchQuery = u($searchQuery)->replaceMatches('/[[:space:]]/', ' ')->trim();
+        $terms = array_unique($searchQuery->split(' '));
+
+        // Ignore les termes de recherche trop courts
+        return array_filter($terms, static function ($term) {
+            return 2 <= $term->length();
+        });
     }
-    */
 }

@@ -4,8 +4,8 @@ namespace App\DataFixtures;
 
 use Faker\Factory;
 use App\Entity\Ad;
-use App\Entity\Car;
 use App\Entity\Category;
+use App\Entity\Automotive;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 
@@ -13,109 +13,25 @@ class AppFixtures extends Fixture
 {
     private \Faker\Generator $faker;
 
-    private array $audi;
-
-    private array $bmw;
-
-    private array $citroen;
-
     public function __construct()
     {
         $this->faker = Factory::create('FR-fr');
-
-        $this->audi = [
-            'Cabriolet',
-            'Q2',
-            'Q3',
-            'Q5',
-            'Q7',
-            'Q8',
-            'R8',
-            'Rs3',
-            'Rs4',
-            'Rs5',
-            'Rs7',
-            'S3',
-            'S4',
-            'S4 Avant',
-            'S4 Cabriolet',
-            'S5',
-            'S7',
-            'S8',
-            'SQ5',
-            'SQ7',
-            'Tt',
-            'Tts',
-            'V8',
-        ];
-        $this->bmw = [
-            'M3',
-            'M4',
-            'M5',
-            'M535',
-            'M6',
-            'M635',
-            'Serie 1',
-            'Serie 2',
-            'Serie 3',
-            'Serie 4',
-            'Serie 5',
-            'Serie 6',
-            'Serie 7',
-            'Serie 8',
-        ];
-        $this->citroen = [
-            'C1',
-            'C15',
-            'C2',
-            'C25',
-            'C25D',
-            'C25E',
-            'C25TD',
-            'C3',
-            'C3 Aircross',
-            'C3 Picasso',
-            'C4',
-            'C4 Picasso',
-            'C5',
-            'C6',
-            'C8',
-            'Ds3',
-            'Ds4',
-            'Ds5',
-        ];
     }
 
     public function load(ObjectManager $manager): void
     {
+        $this->loadAutomotives($manager);
+        $this->loadAds($manager);
+    }
+
+    private function loadAds(ObjectManager $manager)
+    {
         $categories = [];
-
-        // Ajout des voitures
-        foreach ($this->getBrandData() as [$brand]) {
-            $car = new Car();
-
-            $car->setBrand($brand);
-
-            if ($brand === 'Audi') {
-                $car->setModel($this->audi);
-            }
-
-            if ($brand === 'BMW') {
-                $car->setModel($this->bmw);
-            }
-
-            if ($brand === 'Citroën') {
-                $car->setModel($this->citroen);
-            }
-
-            $manager->persist($car);
-        }
+        $vehicles = $manager->getRepository(Automotive::class)->findAll();
 
         // Ajout des categories
         foreach ($this->getCategoryData() as [$name]) {
-            $category = new Category();
-
-            $category->setName($name);
+            $category = (new Category())->setName($name);
 
             $manager->persist($category);
             $categories[] = $category;
@@ -123,21 +39,75 @@ class AppFixtures extends Fixture
 
         // ajout des annonces
         for ($i = 1; $i <= 30; $i++) {
-            $ad = new Ad();
-
             $title = $this->faker->sentence();
             $content = '<p>' . join('</p><p>', $this->faker->paragraphs(5)) . '</p>';
 
             $category = $categories[mt_rand(0, count($categories) - 1)];
+            $vehicle = $vehicles[array_rand($vehicles)];
 
-            $ad
-                ->setTitle($title)
-                ->setContent($content)
-                ->setCreatedAt($this->faker->dateTimeBetween('-6 months'))
-                ->setCategory($category)
-            ;
+            $ad = new Ad();
+
+            $ad->setTitle($title);
+            $ad->setContent($content);
+            $ad->setCreatedAt($this->faker->dateTimeBetween('-6 months'));
+            $ad->setCategory($category);
+
+            if ($category->getName() === 'Automotive') {
+                $ad->setVehicle($vehicle);
+            }
 
             $manager->persist($ad);
+        }
+
+        $manager->flush();
+    }
+
+    /**
+     * @param ObjectManager $manager
+     *
+     * @return void
+     */
+    private function loadAutomotives(ObjectManager $manager)
+    {
+        foreach ($this->getBrandData() as [$brand]) {
+            if ($brand === 'Audi') {
+                foreach ($this->getAudiModelData() as [$name]) {
+                    $automotive = new Automotive();
+                    $automotive
+                        ->setName($name)
+                        ->setBrand('Audi')
+                    ;
+
+                    $manager->persist($automotive);
+                    $this->setReference($brand, $automotive);
+                }
+            }
+
+            if ($brand === 'BMW') {
+                foreach ($this->getBmwModelData() as [$name]) {
+                    $automotive = new Automotive();
+                    $automotive
+                        ->setName($name)
+                        ->setBrand('BMW')
+                    ;
+
+                    $manager->persist($automotive);
+                    $this->setReference($brand, $automotive);
+                }
+            }
+
+            if ($brand === 'Citroën') {
+                foreach ($this->getCitroenModelData() as [$name]) {
+                    $automotive = new Automotive();
+                    $automotive
+                        ->setName($name)
+                        ->setBrand('Citroën')
+                    ;
+
+                    $manager->persist($automotive);
+                    $this->setReference($brand, $automotive);
+                }
+            }
         }
 
         $manager->flush();
@@ -162,24 +132,6 @@ class AppFixtures extends Fixture
     }
 
     /**
-     * Recuperation des marques des voitures
-     *
-     * @return array
-     */
-    private function getBrandData(): array
-    {
-        $brands = [];
-
-        foreach ($this->generateBrands() as $brand) {
-            $brands[] = [
-                $brand['brand'],
-            ];
-        }
-
-        return $brands;
-    }
-
-    /**
      * On genere les categories
      *
      * @return \string[][]
@@ -194,6 +146,22 @@ class AppFixtures extends Fixture
     }
 
     /**
+     * Recuperation des noms des marques
+     *
+     * @return array
+     */
+    private function getBrandData(): array
+    {
+        $brands = [];
+
+        foreach ($this->generateBrands() as $brand) {
+            $brands[] = [$brand['brand']];
+        }
+
+        return $brands;
+    }
+
+    /**
      * On genere les noms des marques de voitures
      *
      * @return \string[][]
@@ -204,6 +172,141 @@ class AppFixtures extends Fixture
             ['brand' => 'Audi'],
             ['brand' => 'BMW'],
             ['brand' => 'Citroën'],
+        ];
+    }
+
+    /**
+     * Recuperation des models Audi
+     *
+     * @return array
+     */
+    private function getAudiModelData(): array
+    {
+        $models = [];
+
+        foreach ($this->generateAudiModels() as $model) {
+            $models[] = [$model['name']];
+        }
+
+        return $models;
+    }
+
+    /**
+     * On genere les models Audi
+     *
+     * @return \string[][]
+     */
+    private function generateAudiModels(): array
+    {
+        return [
+            ['name' => 'Cabriolet'],
+            ['name' => 'Q2'],
+            ['name' => 'Q3'],
+            ['name' => 'Q5'],
+            ['name' => 'Q7'],
+            ['name' => 'Q8'],
+            ['name' => 'R8'],
+            ['name' => 'Rs3'],
+            ['name' => 'Rs4'],
+            ['name' => 'Rs5'],
+            ['name' => 'Rs7'],
+            ['name' => 'S3'],
+            ['name' => 'S4'],
+            ['name' => 'S4 Avant'],
+            ['name' => 'S4 Cabriolet'],
+            ['name' => 'S5'],
+            ['name' => 'S6'],
+            ['name' => 'S7'],
+            ['name' => 'S8'],
+            ['name' => 'SQ5'],
+            ['name' => 'SQ7'],
+            ['name' => 'Tt'],
+            ['name' => 'Tts'],
+            ['name' => 'V8'],
+        ];
+    }
+
+    /**
+     * Recuperation des models BMW
+     *
+     * @return array
+     */
+    private function getBmwModelData(): array
+    {
+        $models = [];
+
+        foreach ($this->generateBmwModels() as $model) {
+            $models[] = [$model['name']];
+        }
+
+        return $models;
+    }
+
+    /**
+     * On genere les models BMW
+     *
+     * @return \string[][]
+     */
+    private function generateBmwModels(): array
+    {
+        return [
+            ['name' => 'M3'],
+            ['name' => 'M4'],
+            ['name' => 'M5'],
+            ['name' => 'M535'],
+            ['name' => 'M635'],
+            ['name' => 'Serie 1'],
+            ['name' => 'Serie 2'],
+            ['name' => 'Serie 3'],
+            ['name' => 'Serie 4'],
+            ['name' => 'Serie 5'],
+            ['name' => 'Serie 6'],
+            ['name' => 'Serie 7'],
+            ['name' => 'Serie 8'],
+        ];
+    }
+
+    /**
+     * Recuperation des models Ctroen
+     *
+     * @return array
+     */
+    private function getCitroenModelData(): array
+    {
+        $models = [];
+
+        foreach ($this->generateCitroenModels() as $model) {
+            $models[] = [$model['name']];
+        }
+
+        return $models;
+    }
+
+    /**
+     * On genere les models Ctroen
+     *
+     * @return \string[][]
+     */
+    private function generateCitroenModels(): array
+    {
+        return [
+            ['name' => 'C1'],
+            ['name' => 'C15'],
+            ['name' => 'C2'],
+            ['name' => 'C25'],
+            ['name' => 'C25D'],
+            ['name' => 'C25E'],
+            ['name' => 'C25TD'],
+            ['name' => 'C3 Aircross'],
+            ['name' => 'C3 Picasso'],
+            ['name' => 'C4'],
+            ['name' => 'C4 Picasso'],
+            ['name' => 'C5'],
+            ['name' => 'C6'],
+            ['name' => 'C8'],
+            ['name' => 'Ds3'],
+            ['name' => 'Ds4'],
+            ['name' => 'Ds5'],
         ];
     }
 }

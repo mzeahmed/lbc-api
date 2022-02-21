@@ -5,7 +5,6 @@ namespace App\Entity;
 use App\Repository\AdRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
-use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: AdRepository::class)]
 class Ad
@@ -14,24 +13,25 @@ class Ad
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     #[Groups('ad:read')]
-    private int $id;
+    private $id;
 
     #[ORM\Column(type: 'string', length: 255)]
     #[Groups('ad:read')]
-    #[Assert\NotBlank]
     private ?string $title;
 
     #[ORM\Column(type: 'text')]
     #[Groups('ad:read')]
-    #[Assert\NotBlank]
     private ?string $content;
 
     #[ORM\Column(type: 'datetime')]
     #[Groups('ad:read')]
     private ?\DateTimeInterface $createdAt;
 
+    #[ORM\ManyToOne(targetEntity: Automotive::class, inversedBy: 'ads')]
+    #[Groups('ad:read')]
+    private ?Automotive $vehicle;
+
     #[ORM\ManyToOne(targetEntity: Category::class, inversedBy: 'ads')]
-    #[ORM\JoinColumn(nullable: true)]
     #[Groups('ad:read')]
     private ?Category $category;
 
@@ -72,6 +72,18 @@ class Ad
     public function setCreatedAt(\DateTimeInterface $createdAt): self
     {
         $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getVehicle(): ?Automotive
+    {
+        return $this->vehicle;
+    }
+
+    public function setVehicle(?Automotive $vehicle): self
+    {
+        $this->vehicle = $vehicle;
 
         return $this;
     }

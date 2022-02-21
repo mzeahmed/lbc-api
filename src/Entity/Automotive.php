@@ -2,13 +2,13 @@
 
 namespace App\Entity;
 
-use App\Repository\CategoryRepository;
+use App\Repository\AutomotiveRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: CategoryRepository::class)]
-class Category
+#[ORM\Entity(repositoryClass: AutomotiveRepository::class)]
+class Automotive
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -19,7 +19,10 @@ class Category
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $name;
 
-    #[ORM\OneToMany(mappedBy: 'category', targetEntity: Ad::class)]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $brand;
+
+    #[ORM\OneToMany(mappedBy: 'vehicle', targetEntity: Ad::class)]
     private $ads;
 
     public function __construct()
@@ -44,6 +47,18 @@ class Category
         return $this;
     }
 
+    public function getBrand(): ?string
+    {
+        return $this->brand;
+    }
+
+    public function setBrand(string $brand): self
+    {
+        $this->brand = $brand;
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, Ad>
      */
@@ -56,7 +71,7 @@ class Category
     {
         if (! $this->ads->contains($ad)) {
             $this->ads[] = $ad;
-            $ad->setCategory($this);
+            $ad->setVehicle($this);
         }
 
         return $this;
@@ -66,8 +81,8 @@ class Category
     {
         if ($this->ads->removeElement($ad)) {
             // set the owning side to null (unless already changed)
-            if ($ad->getCategory() === $this) {
-                $ad->setCategory(null);
+            if ($ad->getVehicle() === $this) {
+                $ad->setVehicle(null);
             }
         }
 
