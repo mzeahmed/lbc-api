@@ -3,8 +3,10 @@
 namespace App\Repository;
 
 use App\Entity\Ad;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+
+use function Symfony\Component\String\u;
 
 /**
  * @method Ad|null find($id, $lockMode = null, $lockVersion = null)
@@ -19,32 +21,40 @@ class AdRepository extends ServiceEntityRepository
         parent::__construct($registry, Ad::class);
     }
 
-    // /**
-    //  * @return Ad[] Returns an array of Ad objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    /**
+     * @param string $query
+     * @param int    $limit
+     *
+     * @return float|int|mixed|string
+     */
+    public function findBySearchQuery(string $query, int $limit = 3): mixed
     {
-        return $this->createQueryBuilder('a')
-            ->andWhere('a.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('a.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+        $searchTerms = $this->extractSearchTerms($query);
+        $qb = $this->createQueryBuilder('a');
 
-    /*
-    public function findOneBySomeField($value): ?Ad
-    {
-        return $this->createQueryBuilder('a')
-            ->andWhere('a.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        foreach ($searchTerms as $key => $term) {
+            $qb
+                ->join('a.vehicle', 'av')
+                ->where('av.name LIKE :t_' . $key)
+                ->setParameter('t_' . $key, '%' . $term . '%')
+            ;
+        }
+
+        return $qb->getQuery()->setMaxResults($limit)->execute();
     }
-    */
+
+    /**
+     * @param string $searchQuery
+     *
+     * @return array
+     */
+    private function extractSearchTerms(string $searchQuery): array
+    {
+        $searchQuery = u($searchQuery)->replaceMatches('/[[:space:]]+/', ' ')->trim();
+        $terms = array_unique($searchQuery->split(' '));
+
+        return array_filter($terms, static function ($term) {
+            return 2 <= $term->length();
+        });
+    }
 }

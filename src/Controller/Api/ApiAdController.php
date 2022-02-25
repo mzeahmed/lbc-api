@@ -27,24 +27,12 @@ class ApiAdController extends AbstractController
     ) {
     }
 
-    /**
-     * @param AdRepository $adRepository
-     *
-     * @return JsonResponse
-     */
     #[Route('/', name: '_index', methods: ['GET'])]
     public function index(AdRepository $adRepository): JsonResponse
     {
-        // dd($adRepository->findAll());
-
         return $this->json($adRepository->findAll(), 200, [], ['groups' => 'ad:read']);
     }
 
-    /**
-     * @param Request $request
-     *
-     * @return JsonResponse
-     */
     #[Route('/store', name: '_new', methods: ['POST'])]
     public function store(Request $request): JsonResponse
     {
@@ -55,8 +43,6 @@ class ApiAdController extends AbstractController
 
         $automotive = $this->em->getRepository(Automotive::class)->findBy(['id' => $vehicleId]);
         $category = $this->em->getRepository(Category::class)->findBy(['id' => $categoryId]);
-
-        // dd($automotive[0], $category[0]);
 
         try {
             $ad = $this->serializer->deserialize($json, Ad::class, 'json');
@@ -84,37 +70,29 @@ class ApiAdController extends AbstractController
         }
     }
 
-    /**
-     * @param Ad $ad
-     *
-     * @return JsonResponse
-     */
     #[Route('/{id}', name: '_read', methods: ['GET'])]
     public function read(Ad $ad): JsonResponse
     {
         return $this->json($ad, Response::HTTP_OK, [], ['groups' => 'ad:read']);
     }
 
-    /**
-     * @param Ad      $ad
-     * @param Request $request
-     *
-     * @return JsonResponse
-     */
-    #[Route('/{id}/edit', name: '_edit', methods: ['PUT'])]
-    public function update(Ad $ad, Request $request): JsonResponse
+    #[Route('/{id}/edit', name: '_edit', methods: ['PATCH'])]
+    public function update(Request $request, AdRepository $adRepo): JsonResponse
     {
         $json = $request->getContent();
+        $obj = json_decode($json);
+        $objId = $obj->{'id'};
+        $oldAd = $adRepo->find($objId);
 
         try {
-            $class = $this->serializer->deserialize($json, Ad::class, 'json');
+            $entity = $this->serializer->deserialize($json, Ad::class, 'json', ['object_to_populate' => $oldAd]);
 
-            $errors = $this->validator->validate($class);
+            $errors = $this->validator->validate($entity);
             if (count($errors) > 0) {
                 return $this->json($errors, Response::HTTP_BAD_REQUEST);
             }
 
-            $this->em->persist($ad);
+            $this->em->persist($entity);
             $this->em->flush();
 
             return $this->json([
@@ -129,12 +107,7 @@ class ApiAdController extends AbstractController
         }
     }
 
-    /**
-     * @param Ad $ad
-     *
-     * @return JsonResponse
-     */
-    #[Route('/{id}/delete', name: '_delete', methods: ['POST'])]
+    #[Route('/{id}/delete', name: '_delete', methods: ['DELETE'])]
     public function delete(Ad $ad): JsonResponse
     {
         try {
