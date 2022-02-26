@@ -4,7 +4,6 @@ namespace App\Controller\Api;
 
 use App\Repository\AdRepository;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -27,7 +26,7 @@ class ApiSearchController extends AbstractController
                 'brand' => htmlspecialchars($ad->getVehicle()->getBrand(), \ENT_COMPAT | \ENT_HTML5),
             ];
         }
-
-        return $this->json($results, Response::HTTP_OK, [], ['groups' => 'ad:read']);
+        
+        return $this->json($results);
     }
 }
