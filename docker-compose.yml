@@ -38,7 +38,6 @@ services:
             - ./:/var/www/lbc-api
         environment:
             DATABASE_URL: mysql://root:@database/lbc_api?serverVersion=8.0.28
-            JWT_PASSPHRASE: c463b02d15d77171325e6cd785821828
         restart: always
         networks:
             dev:
