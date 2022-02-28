@@ -73,6 +73,8 @@ Se connecter au container `lbc-api_web`
 
 `curl -X POST --header "Content-Type: application/json" http://localhost/api/login_check -d '{"username":"ahmed@mze.net","password":"password"}'`
 
+Copier le token affiché dans la console et le coller avec les requetes suivantes
+
 #### Lister les annonces
 
 `curl --header "Content-Type: application/json" --header "Authorization: Bearer <<token>>" --request GET http://localhost/api/ad`
