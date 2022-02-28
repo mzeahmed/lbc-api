@@ -26,7 +26,7 @@ class ApiSearchController extends AbstractController
                 'brand' => htmlspecialchars($ad->getVehicle()->getBrand(), \ENT_COMPAT | \ENT_HTML5),
             ];
         }
-        
+
         return $this->json($results);
     }
 }

@@ -38,6 +38,7 @@ services:
             - ./:/var/www/lbc-api
         environment:
             DATABASE_URL: mysql://root:@database/lbc_api?serverVersion=8.0.28
+            APP_ENV: dev
         restart: always
         networks:
             dev:
